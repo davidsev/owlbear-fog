@@ -1,0 +1,26 @@
+{
+  "version": "0.0.1",
+  "scripts": {
+    "serve": "URL_PREFIX=http://127.0.0.1:8091 webpack-dev-server --node-env=development --port 8091 --hot",
+    "prod": "webpack --node-env=production"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "GPL-3.0-or-later",
+  "description": "",
+  "devDependencies": {
+    "copy-webpack-plugin": "^12.0.2",
+    "html-webpack-plugin": "^5.6.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.0.4",
+    "webpack": "^5.93.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.0.4"
+  },
+  "dependencies": {
+    "@davidsev/owlbear-utils": "^0.25.0",
+    "@owlbear-rodeo/sdk": "^2.4.0",
+    "canvaskit-wasm": "^0.39.1",
+    "simplify-js": "^1.2.4"
+  }
+}

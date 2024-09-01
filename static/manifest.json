@@ -1,0 +1,9 @@
+{
+  "name" : "Fog Painter",
+  "version" : "DEV",
+  "description" : "Paint fog cell-by-cell",
+  "manifest_version" : 1,
+  "background_url" : "/frame.html#background",
+  "icon" : "/icon.svg",
+  "homepage_url" : "https://github.com/davidsev/owlbear-fog-painter"
+}
