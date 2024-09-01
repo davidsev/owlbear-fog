@@ -2,21 +2,23 @@
 title: Fog Brush
 description: Reveal fog with a paint brush or by selecting cells
 author: David Severwright
-image: https://debug.owlbear.davidsev.co.uk/banner.png
-icon: https://debug.owlbear.davidsev.co.uk/icon.svg
+image: https://fog.owlbear.davidsev.co.uk/banner.png
+icon: https://fog.owlbear.davidsev.co.uk/icon.svg
 tags:
     - other
-manifest: https://debug.owlbear.davidsev.co.uk/manifest.json
-learn-more: https://github.com/davidsev/owlbear-debug
+manifest: https://fog.owlbear.davidsev.co.uk/manifest.json
+learn-more: https://github.com/davidsev/owlbear-fog
 ---
 
 # OwlBug
 
-This extension adds a few tools that might be useful to extension developers and people who like to break things.
+This extension adds three new tools for drawing fog:
 
-The main features are editing items, editing metadata, and sending / viewing broadcasts.
+- A "paint brush" tool that reveals fog as you draw
+- A "select cells" tool that reveals the squares / hexes you select
+- A "lasso" tool thatdraw around a bunch of squares / hexes to reveal them all
 
 ### Other
 
-- The code is on [GitHub](https://github.com/davidsev/owlbear-debug)
+- The code is on [GitHub](https://github.com/davidsev/owlbear-fog)
 
