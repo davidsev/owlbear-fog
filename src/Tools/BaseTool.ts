@@ -1,4 +1,4 @@
-import OBR, { buildPath, isPath, Path, PathCommand, ToolIcon, ToolMode, Vector2 } from '@owlbear-rodeo/sdk';
+import OBR, { buildPath, isPath, Metadata, Path, PathCommand, ToolIcon, ToolMode, Vector2 } from '@owlbear-rodeo/sdk';
 import { ToolContext, ToolEvent } from '@owlbear-rodeo/sdk/lib/types/Tool';
 import { grid } from '@davidsev/owlbear-utils';
 
@@ -44,7 +44,7 @@ export abstract class BaseTool implements ToolMode {
     }
 
     async onToolDragEnd (context: ToolContext, event: ToolEvent) {
-        await this.save();
+        await this.save(context.metadata);
         this.cleanup();
     }
 
@@ -129,8 +129,7 @@ export abstract class BaseTool implements ToolMode {
         await OBR.scene.local.addItems([this.guidePath]);
     }
 
-    private async save (): Promise<void> {
-        const fogMetadata = await OBR.tool.getMetadata('rodeo.owlbear.tool/fog');
+    private async save (fogMetadata: Metadata): Promise<void> {
         const cut = !!fogMetadata?.cut;
 
         await OBR.scene.items.addItems([buildPath()
