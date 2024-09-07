@@ -1,0 +1,34 @@
+@import 'modern-normalize/modern-normalize.css';
+
+/*
+ *  text is the color for text
+ *  theme is purple for highlights etc
+ *  background is the main background color
+ *  panel is the background color for panels and controls etc
+ */
+[data-theme=light] {
+    --text-rgb: 0, 0, 0;
+    --theme-rgb: 187, 153, 255;
+    --background-rgb: 229, 231, 235;
+    --panel-rgb: 242, 243, 249;
+}
+
+[data-theme=dark] {
+    --text-rgb: 255, 255, 255;
+    --theme-rgb: 187, 153, 255;
+    --background-rgb: 46, 49, 66;
+    --panel-rgb: 34, 39, 56;
+}
+
+:host {
+    --text-color: rgb(var(--text-rgb));
+    --text-secondary-color: rgba(var(--text-rgb), 0.7);
+    --theme-color: rgb(var(--theme-rgb));
+    --background-color: rgb(var(--background-rgb));
+    --panel-color: rgb(var(--panel-rgb));
+
+    display: block;
+    color: var(--text-color);
+    font-family: sans-serif;
+    line-height: 1.5;
+}
