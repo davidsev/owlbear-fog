@@ -17,7 +17,6 @@ export class BrushSizeForm extends BaseElement {
         super();
 
         toolMetadata.get().then((metadata) => {
-            console.log('metadata', metadata, toolMetadata.key);
             this.input.valueAsNumber = Math.log(metadata.radius * 2);
             this.input.readOnly = false;
         });
@@ -32,7 +31,6 @@ export class BrushSizeForm extends BaseElement {
     }
 
     private barChanged () {
-        console.log('barChanged', this.input.valueAsNumber);
         toolMetadata.set({ radius: Math.pow(this.input.valueAsNumber, Math.E) / 2 });
     }
 }
