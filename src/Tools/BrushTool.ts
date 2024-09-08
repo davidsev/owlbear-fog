@@ -1,4 +1,4 @@
-import OBR, { PathCommand, Vector2 } from '@owlbear-rodeo/sdk';
+import OBR, { buildShape, PathCommand, Shape, Vector2 } from '@owlbear-rodeo/sdk';
 import getId from '../getId';
 import { grid, Point } from '@davidsev/owlbear-utils';
 import { BaseTool } from './BaseTool';
@@ -15,7 +15,8 @@ export class BrushTool extends BaseTool {
 
     private points: Point[] = [];
     private shape: Path;
-    private radius: number = 0.25;
+    private radius: number = 0;
+    private cursor: Shape | null = null;
 
     // There's an OBR bug where opening a popover in onActivate causes the tool to deactivate, which makes a loop.
     // This flag is used to detect and break the loop.
@@ -26,41 +27,7 @@ export class BrushTool extends BaseTool {
         this.shape = new this.canvasKit.Path();
     }
 
-    public async onActivate (): Promise<void> {
-
-        // If we're already in the activation function, abort.
-        if (this.inActivationFunction) {
-            console.log('Skipping extra activation event');
-            return;
-        }
-        this.inActivationFunction = true;
-
-        await OBR.popover.open({
-            id: getId('brush-settings'),
-            url: URL_PREFIX + '/frame.html#brush-settings',
-            height: 40,
-            width: 250,
-            disableClickAway: true,
-            anchorElementId: getId('brush'),
-            anchorOrigin: {
-                horizontal: 'CENTER',
-                vertical: 'TOP',
-            },
-            marginThreshold: 56,
-            anchorReference: 'ELEMENT',
-        });
-
-        this.inActivationFunction = false;
-    }
-
-    public onDeactivate (): void {
-        if (this.inActivationFunction) {
-            console.log('Skipping extra deactivation event');
-            return;
-        }
-        OBR.popover.close(getId('brush-settings'));
-    }
-
+    // When a new draw starts, set the radius of the brush.  There's no way to change the radius of the brush in the middle of a draw.
     async onToolDragStart (context: ToolContext, event: ToolEvent): Promise<void> {
         this.radius = (await toolMetadata.get()).radius * grid.dpi;
         super.onToolDragStart(context, event);
@@ -105,5 +72,106 @@ export class BrushTool extends BaseTool {
             return [];
 
         return skiaPathToObrPath(this.shape.toCmds());
+    }
+
+    //
+    // Hook events so we can control the brush popup and the cursor.
+    //
+
+    // When the tool is activated, show the settings popup and the cursor.
+    public async onActivate (): Promise<void> {
+
+        // If we're already in the activation function, abort.
+        if (this.inActivationFunction) {
+            console.log('Skipping extra activation event');
+            return;
+        }
+        this.inActivationFunction = true;
+
+        const settingsPromise = this.showSettingsPopup();
+        const cursorPromise = this.showCursor();
+        await Promise.all([settingsPromise, cursorPromise]);
+
+        this.inActivationFunction = false;
+    }
+
+    // When the tool is deactivated, hide the settings popup and the cursor.
+    public onDeactivate (): void {
+        if (this.inActivationFunction) {
+            console.log('Skipping extra deactivation event');
+            return;
+        }
+
+        this.hideSettingsPopup();
+        this.hideCursor();
+    }
+
+    public onToolMove (context: ToolContext, event: ToolEvent): void {
+        this.updateCursor(event.pointerPosition);
+    }
+
+    //
+    // Settings popup stuff.
+    //
+
+    private async showSettingsPopup (): Promise<void> {
+        await OBR.popover.open({
+            id: getId('brush-settings'),
+            url: URL_PREFIX + '/frame.html#brush-settings',
+            height: 40,
+            width: 250,
+            disableClickAway: true,
+            anchorElementId: getId('brush'),
+            anchorOrigin: {
+                horizontal: 'CENTER',
+                vertical: 'TOP',
+            },
+            marginThreshold: 56,
+            anchorReference: 'ELEMENT',
+        });
+    }
+
+    private hideSettingsPopup (): void {
+        OBR.popover.close(getId('brush-settings'));
+    }
+
+    //
+    // Cursor stuff.
+    //
+
+    private async showCursor (): Promise<void> {
+        this.cursor = buildShape()
+            .strokeColor('#AAAAAA')
+            .fillOpacity(0)
+            .strokeWidth(3)
+            .disableHit(true)
+            .layer('POPOVER')
+            .shapeType('CIRCLE')
+            .build();
+
+        await OBR.scene.local.addItems([this.cursor]);
+    }
+
+    private hideCursor (): void {
+        if (this.cursor) {
+            OBR.scene.local.deleteItems([this.cursor.id]);
+            this.cursor = null;
+        }
+    }
+
+    private _inUpdate: boolean = false;
+
+    private async updateCursor (point: Vector2): Promise<void> {
+        if (this.cursor) {
+            if (this._inUpdate)
+                return;
+            this._inUpdate = true;
+            await OBR.scene.local.updateItems([this.cursor.id], ([cursor]) => {
+                cursor.position = point;
+                cursor.width = this.radius * 2;
+                cursor.height = this.radius * 2;
+            });
+            this._inUpdate = false;
+        }
     }
 }
