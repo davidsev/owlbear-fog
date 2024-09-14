@@ -28,6 +28,8 @@
     "@davidsev/owlbear-utils": "^0.25.0",
     "@owlbear-rodeo/sdk": "^2.4.0",
     "canvaskit-wasm": "^0.39.1",
+    "esm-potrace-wasm": "^0.4.1",
+    "image-js": "^0.35.6",
     "lit": "^3.2.0",
     "modern-normalize": "^3.0.0",
     "simplify-js": "^1.2.4",
