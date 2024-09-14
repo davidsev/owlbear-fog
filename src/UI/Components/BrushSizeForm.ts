@@ -16,16 +16,13 @@ export class BrushSizeForm extends BaseElement {
     constructor () {
         super();
 
-        toolMetadata.get().then((metadata) => {
-            this.input.valueAsNumber = Math.sqrt(metadata.radius * 2);
-            this.input.readOnly = false;
-        });
     }
 
     render () {
         return html`
             <main>
-                <input type="range" min="0.4" max="2" step="0.1" readonly @change="${this.barChanged}"/>
+                <input type="range" min="0.4" max="2" step="0.1" value="${Math.sqrt(toolMetadata.data.radius * 2)}"
+                       @change="${this.barChanged}"/>
             </main>
         `;
     }

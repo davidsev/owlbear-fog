@@ -15,7 +15,6 @@ export class BrushTool extends BaseTool {
 
     private points: Point[] = [];
     private shape: Path;
-    private radius: number = 0;
     private cursor: Shape | null = null;
 
     // There's an OBR bug where opening a popover in onActivate causes the tool to deactivate, which makes a loop.
@@ -25,12 +24,6 @@ export class BrushTool extends BaseTool {
     constructor (public readonly canvasKit: CanvasKit) {
         super();
         this.shape = new this.canvasKit.Path();
-    }
-
-    // When a new draw starts, set the radius of the brush.  There's no way to change the radius of the brush in the middle of a draw.
-    async onToolDragStart (context: ToolContext, event: ToolEvent): Promise<void> {
-        this.radius = (await toolMetadata.get()).radius * grid.dpi;
-        super.onToolDragStart(context, event);
     }
 
     protected add (point: Vector2): void {
@@ -138,6 +131,10 @@ export class BrushTool extends BaseTool {
     //
     // Cursor stuff.
     //
+
+    private get radius (): number {
+        return toolMetadata.data.radius * grid.dpi;
+    }
 
     private async showCursor (): Promise<void> {
         this.cursor = buildShape()
