@@ -88,6 +88,9 @@ export class RevealToken implements ContextMenuItem {
         // Move it so the 0,0 is in the center, which is how OBR does images by default.
         path.transform(this.canvasKit.Matrix.translated(-originalImage.width * maskScaleFactorX, originalImage.height * maskScaleFactorY));
 
+        // If the image is moved via "Align Image", then we need to move the path as well.
+        path.transform(this.canvasKit.Matrix.translated(-(item.grid.offset.x - (item.image.width / 2)) / (item.grid.dpi / grid.dpi), -(item.grid.offset.y - (item.image.height / 2)) / (item.grid.dpi / grid.dpi)));
+
         // Create a new path item from the SVG path.
         OBR.scene.items.addItems([
             buildPath()
