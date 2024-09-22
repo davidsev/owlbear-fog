@@ -11,9 +11,6 @@ export class UnrevealToken implements ContextMenuItem {
         label: 'Unreveal through fog',
         filter: {
             roles: ['GM'] as 'GM'[],
-            every: [
-                { key: 'type', value: 'IMAGE' },
-            ],
             some: [
                 { key: ['metadata', getId('revealToken'), 'revealed'], operator: '==', value: true },
             ],
