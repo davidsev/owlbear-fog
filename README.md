@@ -1,6 +1,6 @@
 # Fog Painter
 
-An [Owlbear Rodeo](https://www.owlbear.rodeo/) extension to allow you to paint fog of war on the map.
+An [Owlbear Rodeo](https://www.owlbear.rodeo/) extension that adds some more ways to add fog to your maps.
 
 ## Installation
 
@@ -10,4 +10,5 @@ An [Owlbear Rodeo](https://www.owlbear.rodeo/) extension to allow you to paint f
 
 ## Usage
 
+See [the store page](https://extensions.owlbear.rodeo/fog-painter) for more information.
 
