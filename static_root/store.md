@@ -10,7 +10,7 @@ manifest: https://fog.owlbear.davidsev.co.uk/manifest.json
 learn-more: https://github.com/davidsev/owlbear-fog
 ---
 
-# OwlBug
+# Fog Painter
 
 This extension adds four new tools for drawing fog:
 
