@@ -1,7 +1,9 @@
-import OBR, { ContextMenuIcon, ContextMenuItem, Image, isImage } from '@owlbear-rodeo/sdk';
+import { ContextMenuIcon, ContextMenuItem, isImage } from '@owlbear-rodeo/sdk';
 import getId from '../Utils/getId';
 import { ContextMenuContext } from '@owlbear-rodeo/sdk/lib/types/ContextMenu';
 import { revealTokenMetadata } from '../Metadata/ItemMetadata';
+import { ImageRevealer } from '../Utils/ImageRevealer';
+import { CanvasKit } from 'canvaskit-wasm';
 
 export class UnrevealToken implements ContextMenuItem {
 
@@ -18,24 +20,16 @@ export class UnrevealToken implements ContextMenuItem {
         },
     }];
 
+    constructor (public readonly canvasKit: CanvasKit) {}
+
     public async onClick (context: ContextMenuContext, elementId: string): Promise<void> {
 
         const promises = [];
         for (const item of context.items) {
             const metadata = revealTokenMetadata.get(item);
             if (isImage(item) && metadata.revealed)
-                promises.push(this.unrevealImage(item));
+                promises.push(new ImageRevealer(this.canvasKit, item).unreveal());
         }
         await Promise.all(promises);
-    }
-
-    private async unrevealImage (item: Image): Promise<void> {
-
-        const attachedItems = await OBR.scene.items.getItemAttachments([item.id]);
-        const itemsToDelete = attachedItems.filter(i => i.metadata?.['createdBy'] === getId('revealToken'));
-        await OBR.scene.items.deleteItems(itemsToDelete.map(i => i.id));
-        OBR.scene.items.updateItems([item], ([item]) => {
-            revealTokenMetadata.set(item, { revealed: false });
-        });
     }
 }

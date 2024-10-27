@@ -18,7 +18,7 @@ registerInitFunction('background', () => {
         OBR.tool.createMode(new LassoCellsTool(canvasKit));
         OBR.tool.createMode(new BrushTool(canvasKit));
         OBR.contextMenu.create(new RevealToken(canvasKit));
-        OBR.contextMenu.create(new UnrevealToken());
+        OBR.contextMenu.create(new UnrevealToken(canvasKit));
     });
 });
 

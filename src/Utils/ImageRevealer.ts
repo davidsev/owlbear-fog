@@ -1,0 +1,99 @@
+import OBR, { buildPath, Image } from '@owlbear-rodeo/sdk';
+import { Image as ImageJs } from 'image-js';
+import { grid } from '@davidsev/owlbear-utils';
+import { potrace } from 'esm-potrace-wasm';
+import { CanvasKit, Path } from 'canvaskit-wasm';
+import { skiaPathToObrPath } from './skiaPathToObrPath';
+import getId from './getId';
+import { revealTokenMetadata } from '../Metadata/ItemMetadata';
+
+export class ImageRevealer {
+    constructor (
+        public readonly canvasKit: CanvasKit,
+        public readonly item: Image,
+    ) {}
+
+    public async reveal (): Promise<void> {
+        // Load the image and pull out just the alpha channel.
+        // FIXME: If no alpha channel, then it's square and we can just reveal the whole thing.
+        const originalImage = await ImageJs.load(this.item.image.url);
+        if (!originalImage.alpha)
+            return;
+
+        // Turn the alpha channel into a 1-bit mask.  Split it at 80% opacity, we don't want to reveal any bits that
+        //   are too see-through (eg shadows and halos) but we also dont want to remove bits that look solid.
+        //   This feels like an ok-ish compromise.
+        // We also shrink the mask so the path doesn't have too many points.  This comes out to 75 px per cell.
+        const maskScaleFactorX = this.item.scale.x / (this.item.grid.dpi / grid.dpi) / 2;
+        const maskScaleFactorY = this.item.scale.y / (this.item.grid.dpi / grid.dpi) / 2;
+        const mask = originalImage
+            .getChannel(originalImage.components, { keepAlpha: false, mergeAlpha: false })
+            .mask({ threshold: 0.9 })
+            .resize({
+                width: originalImage.width * maskScaleFactorX,
+                height: originalImage.height * maskScaleFactorY,
+            })
+            .invert();
+
+        // Trace it into paths.
+        // Options:  https://github.com/tomayac/esm-potrace-wasm  and  https://potrace.sourceforge.net/potracelib.pdf
+        const svgCommand = await potrace(mask.getCanvas(), {
+            pathonly: true,
+            extractcolors: false,
+            translate: false,
+            opttolerance: 0.05, // Default is 0.2, which breaks circles.
+        }) as any as string[]; // The return type is actually string, but the type definition is wrong.
+
+        // Convert the SVG path(s) into a Skia path, and merge them together if it's multiple paths.
+        const paths = svgCommand.map(path => this.canvasKit.Path.MakeFromSVGString(path)).filter(path => path) as Path[];
+        if (!paths.length) // FIXME: it's a square, so just reveal the whole thing.
+            return;
+        const path = paths[0];
+        for (const p of paths.slice(1))
+            path.op(p, this.canvasKit.PathOp.Union);
+
+        // Potrace has the origin at the bottom left instead of the top, so we need to flip the path.
+        path.transform(this.canvasKit.Matrix.scaled(1, -1));
+
+        // Fix the size to match the original image.  potracer has a 10-to-1 scale, and we need to undo shrinking the mask
+        path.transform(this.canvasKit.Matrix.scaled(0.2, 0.2));
+
+        // Move it so the 0,0 is in the center, which is how OBR does images by default.
+        path.transform(this.canvasKit.Matrix.translated(-originalImage.width * maskScaleFactorX, originalImage.height * maskScaleFactorY));
+
+        // If the image is moved via "Align Image", then we need to move the path as well.
+        path.transform(this.canvasKit.Matrix.translated(-(this.item.grid.offset.x - (this.item.image.width / 2)) / (this.item.grid.dpi / grid.dpi), -(this.item.grid.offset.y - (this.item.image.height / 2)) / (this.item.grid.dpi / grid.dpi)));
+
+        // Create a new path item from the SVG path.
+        OBR.scene.items.addItems([
+            buildPath()
+                .commands(skiaPathToObrPath(path.toCmds()))
+                .position(this.item.position)
+                .rotation(this.item.rotation)
+                .layer('FOG')
+                .name('Fog Cutout')
+                .fillColor('#222222')
+                .strokeWidth(0)
+                .visible(false)
+                .disableHit(true)
+                .metadata({ createdBy: getId('revealToken') })
+                .attachedTo(this.item.id)
+                .build(),
+        ]);
+
+        // Add metadata to the base image so we can remove the cutout later.
+        OBR.scene.items.updateItems([this.item], ([item]) => {
+            revealTokenMetadata.set(item, { revealed: true });
+        });
+    }
+
+    public async unreveal (): Promise<void> {
+
+        const attachedItems = await OBR.scene.items.getItemAttachments([this.item.id]);
+        const itemsToDelete = attachedItems.filter(i => i.metadata?.['createdBy'] === getId('revealToken'));
+        await OBR.scene.items.deleteItems(itemsToDelete.map(i => i.id));
+        OBR.scene.items.updateItems([this.item], ([item]) => {
+            revealTokenMetadata.set(item, { revealed: false });
+        });
+    }
+}
