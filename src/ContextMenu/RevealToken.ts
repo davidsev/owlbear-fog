@@ -1,6 +1,5 @@
 import { ContextMenuIcon, ContextMenuItem, isImage } from '@owlbear-rodeo/sdk';
 import getId from '../Utils/getId';
-import { CanvasKit } from 'canvaskit-wasm';
 import { ContextMenuContext } from '@owlbear-rodeo/sdk/lib/types/ContextMenu';
 import { revealTokenMetadata } from '../Metadata/ItemMetadata';
 import { ImageRevealer } from '../Utils/ImageRevealer';
@@ -23,15 +22,13 @@ export class RevealToken implements ContextMenuItem {
         },
     }];
 
-    constructor (public readonly canvasKit: CanvasKit) {}
-
     public async onClick (context: ContextMenuContext, elementId: string): Promise<void> {
 
         const promises = [];
         for (const item of context.items) {
             const metadata = revealTokenMetadata.get(item);
             if (isImage(item) && !metadata.revealed)
-                promises.push(new ImageRevealer(this.canvasKit, item).reveal());
+                promises.push(new ImageRevealer(item).reveal());
         }
         await Promise.all(promises);
     }

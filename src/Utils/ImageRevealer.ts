@@ -2,18 +2,18 @@ import OBR, { buildPath, Image } from '@owlbear-rodeo/sdk';
 import { Image as ImageJs } from 'image-js';
 import { grid } from '@davidsev/owlbear-utils';
 import { potrace } from 'esm-potrace-wasm';
-import { CanvasKit, Path } from 'canvaskit-wasm';
+import { Path } from 'canvaskit-wasm';
 import { skiaPathToObrPath } from './skiaPathToObrPath';
 import getId from './getId';
 import { revealTokenMetadata } from '../Metadata/ItemMetadata';
+import { awaitCanvasKit } from './awaitCanvasKit';
 
 export class ImageRevealer {
-    constructor (
-        public readonly canvasKit: CanvasKit,
-        public readonly item: Image,
-    ) {}
+    constructor (public readonly item: Image) {}
 
     public async reveal (): Promise<void> {
+        const canvasKit = await awaitCanvasKit();
+
         // Load the image and pull out just the alpha channel.
         // FIXME: If no alpha channel, then it's square and we can just reveal the whole thing.
         const originalImage = await ImageJs.load(this.item.image.url);
@@ -45,24 +45,24 @@ export class ImageRevealer {
         }) as any as string[]; // The return type is actually string, but the type definition is wrong.
 
         // Convert the SVG path(s) into a Skia path, and merge them together if it's multiple paths.
-        const paths = svgCommand.map(path => this.canvasKit.Path.MakeFromSVGString(path)).filter(path => path) as Path[];
+        const paths = svgCommand.map(path => canvasKit.Path.MakeFromSVGString(path)).filter(path => path) as Path[];
         if (!paths.length) // FIXME: it's a square, so just reveal the whole thing.
             return;
         const path = paths[0];
         for (const p of paths.slice(1))
-            path.op(p, this.canvasKit.PathOp.Union);
+            path.op(p, canvasKit.PathOp.Union);
 
         // Potrace has the origin at the bottom left instead of the top, so we need to flip the path.
-        path.transform(this.canvasKit.Matrix.scaled(1, -1));
+        path.transform(canvasKit.Matrix.scaled(1, -1));
 
         // Fix the size to match the original image.  potracer has a 10-to-1 scale, and we need to undo shrinking the mask
-        path.transform(this.canvasKit.Matrix.scaled(0.2, 0.2));
+        path.transform(canvasKit.Matrix.scaled(0.2, 0.2));
 
         // Move it so the 0,0 is in the center, which is how OBR does images by default.
-        path.transform(this.canvasKit.Matrix.translated(-originalImage.width * maskScaleFactorX, originalImage.height * maskScaleFactorY));
+        path.transform(canvasKit.Matrix.translated(-originalImage.width * maskScaleFactorX, originalImage.height * maskScaleFactorY));
 
         // If the image is moved via "Align Image", then we need to move the path as well.
-        path.transform(this.canvasKit.Matrix.translated(-(this.item.grid.offset.x - (this.item.image.width / 2)) / (this.item.grid.dpi / grid.dpi), -(this.item.grid.offset.y - (this.item.image.height / 2)) / (this.item.grid.dpi / grid.dpi)));
+        path.transform(canvasKit.Matrix.translated(-(this.item.grid.offset.x - (this.item.image.width / 2)) / (this.item.grid.dpi / grid.dpi), -(this.item.grid.offset.y - (this.item.image.height / 2)) / (this.item.grid.dpi / grid.dpi)));
 
         // Create a new path item from the SVG path.
         OBR.scene.items.addItems([
