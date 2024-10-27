@@ -1,5 +1,5 @@
 import OBR, { ContextMenuIcon, ContextMenuItem, Image, isImage } from '@owlbear-rodeo/sdk';
-import getId from '../getId';
+import getId from '../Utils/getId';
 import { ContextMenuContext } from '@owlbear-rodeo/sdk/lib/types/ContextMenu';
 import { revealTokenMetadata } from '../Metadata/ItemMetadata';
 

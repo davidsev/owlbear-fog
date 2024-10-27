@@ -1,12 +1,12 @@
 import { Command, PathCommand, Vector2 } from '@owlbear-rodeo/sdk';
-import getId from '../getId';
+import getId from '../Utils/getId';
 import { Cell, grid, Point } from '@davidsev/owlbear-utils';
 import { BaseTool } from './BaseTool';
 import simplify from 'simplify-js';
-import { fillGapsInPath } from '../fillGapsInPath';
+import { fillGapsInPath } from '../Utils/fillGapsInPath';
 import { CanvasKit } from 'canvaskit-wasm';
-import { cellInPoly } from '../cellInPoly';
-import { skiaPathToObrPath } from '../skiaPathToObrPath';
+import { cellInPoly } from '../Utils/cellInPoly';
+import { skiaPathToObrPath } from '../Utils/skiaPathToObrPath';
 
 export class LassoCellsTool extends BaseTool {
 

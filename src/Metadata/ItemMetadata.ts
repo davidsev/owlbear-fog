@@ -1,5 +1,5 @@
 import { ItemMetadataMapper } from '@davidsev/owlbear-utils';
-import getId from '../getId';
+import getId from '../Utils/getId';
 
 //
 // Item Metadata for the original item.

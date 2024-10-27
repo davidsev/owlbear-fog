@@ -1,9 +1,9 @@
 import OBR, { buildShape, PathCommand, Shape, Vector2 } from '@owlbear-rodeo/sdk';
-import getId from '../getId';
+import getId from '../Utils/getId';
 import { grid, Point } from '@davidsev/owlbear-utils';
 import { BaseTool } from './BaseTool';
 import { CanvasKit, Path } from 'canvaskit-wasm';
-import { skiaPathToObrPath } from '../skiaPathToObrPath';
+import { skiaPathToObrPath } from '../Utils/skiaPathToObrPath';
 import { ToolContext, ToolEvent } from '@owlbear-rodeo/sdk/lib/types/Tool';
 import { toolMetadata } from '../Metadata/ToolMetadata';
 

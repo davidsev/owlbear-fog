@@ -1,9 +1,9 @@
 import { PathCommand, Vector2 } from '@owlbear-rodeo/sdk';
-import getId from '../getId';
+import getId from '../Utils/getId';
 import { Cell, grid } from '@davidsev/owlbear-utils';
 import { BaseTool } from './BaseTool';
 import { CanvasKit } from 'canvaskit-wasm';
-import { skiaPathToObrPath } from '../skiaPathToObrPath';
+import { skiaPathToObrPath } from '../Utils/skiaPathToObrPath';
 
 export class SelectCellsTool extends BaseTool {
 

@@ -1,4 +1,4 @@
-import getId from '../getId';
+import getId from '../Utils/getId';
 import { CachedRoomMetadata } from '@davidsev/owlbear-utils/js/Metadata/Cached/Room';
 
 export class ToolMetadata {

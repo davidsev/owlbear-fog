@@ -1,11 +1,11 @@
 import OBR, { buildPath, ContextMenuIcon, ContextMenuItem, Image, isImage } from '@owlbear-rodeo/sdk';
-import getId from '../getId';
+import getId from '../Utils/getId';
 import { CanvasKit, Path } from 'canvaskit-wasm';
 import { Image as ImageJs } from 'image-js';
 import { ContextMenuContext } from '@owlbear-rodeo/sdk/lib/types/ContextMenu';
 import { potrace } from 'esm-potrace-wasm';
 import { grid } from '@davidsev/owlbear-utils';
-import { skiaPathToObrPath } from '../skiaPathToObrPath';
+import { skiaPathToObrPath } from '../Utils/skiaPathToObrPath';
 import { revealTokenMetadata } from '../Metadata/ItemMetadata';
 
 export class RevealToken implements ContextMenuItem {
