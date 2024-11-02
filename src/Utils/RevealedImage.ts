@@ -1,17 +1,34 @@
-import OBR, { buildPath, Image } from '@owlbear-rodeo/sdk';
+import OBR, { buildPath, Image, Path as ObrPath } from '@owlbear-rodeo/sdk';
 import { Image as ImageJs } from 'image-js';
 import { grid } from '@davidsev/owlbear-utils';
 import { potrace } from 'esm-potrace-wasm';
-import { Path } from 'canvaskit-wasm';
+import { Path as CanvasKitPath } from 'canvaskit-wasm';
 import { skiaPathToObrPath } from './skiaPathToObrPath';
 import getId from './getId';
-import { revealTokenMetadata } from '../Metadata/ItemMetadata';
 import { awaitCanvasKit } from './awaitCanvasKit';
 
-export class ImageRevealer {
+export class RevealedImage {
+    private fogCutout?: ObrPath;
+
     constructor (public readonly item: Image) {}
 
-    public async reveal (): Promise<void> {
+    public get revealed (): boolean {
+        return !!this.fogCutout;
+    }
+
+    public set revealed (value: boolean) {
+        if (value)
+            this.reveal();
+        else
+            this.unreveal();
+    }
+
+    private async reveal (): Promise<void> {
+
+        // If we are already revealed, then do nothing.
+        if (this.fogCutout)
+            return;
+
         const canvasKit = await awaitCanvasKit();
 
         // Load the image and pull out just the alpha channel.
@@ -45,7 +62,7 @@ export class ImageRevealer {
         }) as any as string[]; // The return type is actually string, but the type definition is wrong.
 
         // Convert the SVG path(s) into a Skia path, and merge them together if it's multiple paths.
-        const paths = svgCommand.map(path => canvasKit.Path.MakeFromSVGString(path)).filter(path => path) as Path[];
+        const paths = svgCommand.map(path => canvasKit.Path.MakeFromSVGString(path)).filter(path => path) as CanvasKitPath[];
         if (!paths.length) // FIXME: it's a square, so just reveal the whole thing.
             return;
         const path = paths[0];
@@ -65,35 +82,29 @@ export class ImageRevealer {
         path.transform(canvasKit.Matrix.translated(-(this.item.grid.offset.x - (this.item.image.width / 2)) / (this.item.grid.dpi / grid.dpi), -(this.item.grid.offset.y - (this.item.image.height / 2)) / (this.item.grid.dpi / grid.dpi)));
 
         // Create a new path item from the SVG path.
-        OBR.scene.items.addItems([
-            buildPath()
-                .commands(skiaPathToObrPath(path.toCmds()))
-                .position(this.item.position)
-                .rotation(this.item.rotation)
-                .layer('FOG')
-                .name('Fog Cutout')
-                .fillColor('#222222')
-                .strokeWidth(0)
-                .visible(false)
-                .disableHit(true)
-                .metadata({ createdBy: getId('revealToken') })
-                .attachedTo(this.item.id)
-                .build(),
-        ]);
-
-        // Add metadata to the base image so we can remove the cutout later.
-        OBR.scene.items.updateItems([this.item], ([item]) => {
-            revealTokenMetadata.set(item, { revealed: true });
-        });
+        this.fogCutout = buildPath()
+            .commands(skiaPathToObrPath(path.toCmds()))
+            .position(this.item.position)
+            .rotation(this.item.rotation)
+            .layer('FOG')
+            .name('Fog Cutout')
+            .fillColor('#222222')
+            .strokeWidth(0)
+            .visible(false)
+            .disableHit(true)
+            .metadata({ createdBy: getId('revealToken') })
+            .attachedTo(this.item.id)
+            .build();
+        OBR.scene.local.addItems([this.fogCutout]);
     }
 
-    public async unreveal (): Promise<void> {
+    private async unreveal (): Promise<void> {
 
-        const attachedItems = await OBR.scene.items.getItemAttachments([this.item.id]);
-        const itemsToDelete = attachedItems.filter(i => i.metadata?.['createdBy'] === getId('revealToken'));
-        await OBR.scene.items.deleteItems(itemsToDelete.map(i => i.id));
-        OBR.scene.items.updateItems([this.item], ([item]) => {
-            revealTokenMetadata.set(item, { revealed: false });
-        });
+        // If we aren't revealed, then do nothing.
+        if (!this.fogCutout)
+            return;
+
+        await OBR.scene.local.deleteItems([this.fogCutout.id]);
+        this.fogCutout = undefined;
     }
 }

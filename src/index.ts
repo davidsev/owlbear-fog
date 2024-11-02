@@ -10,6 +10,7 @@ import { init as initPotrace } from 'esm-potrace-wasm';
 import { RevealToken } from './ContextMenu/RevealToken';
 import { UnrevealToken } from './ContextMenu/UnrevealToken';
 import { awaitCanvasKit } from './Utils/awaitCanvasKit';
+import { RevealedImageManager } from './Utils/RevealedImageManager';
 
 registerInitFunction('background', async () => {
     initPotrace(); // Don't bother to wait, we just assume it'll load faster than you can click the button.
@@ -19,6 +20,9 @@ registerInitFunction('background', async () => {
     OBR.tool.createMode(new BrushTool(canvasKit));
     OBR.contextMenu.create(new RevealToken());
     OBR.contextMenu.create(new UnrevealToken());
+
+    const revealedImageManager = new RevealedImageManager();
+    await revealedImageManager.init();
 });
 
 registerInitFunction('brush-settings', () => {

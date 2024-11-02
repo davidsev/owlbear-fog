@@ -1,8 +1,7 @@
-import { ContextMenuIcon, ContextMenuItem, isImage } from '@owlbear-rodeo/sdk';
+import OBR, { ContextMenuIcon, ContextMenuItem, isImage } from '@owlbear-rodeo/sdk';
 import getId from '../Utils/getId';
 import { ContextMenuContext } from '@owlbear-rodeo/sdk/lib/types/ContextMenu';
 import { revealTokenMetadata } from '../Metadata/ItemMetadata';
-import { ImageRevealer } from '../Utils/ImageRevealer';
 
 export class UnrevealToken implements ContextMenuItem {
 
@@ -21,11 +20,13 @@ export class UnrevealToken implements ContextMenuItem {
 
     public async onClick (context: ContextMenuContext, elementId: string): Promise<void> {
 
-        const promises = [];
+        const promises: Promise<void>[] = [];
         for (const item of context.items) {
             const metadata = revealTokenMetadata.get(item);
             if (isImage(item) && metadata.revealed)
-                promises.push(new ImageRevealer(item).unreveal());
+                promises.push(OBR.scene.items.updateItems([item], ([item]) => {
+                    revealTokenMetadata.set(item, { revealed: false });
+                }));
         }
         await Promise.all(promises);
     }
