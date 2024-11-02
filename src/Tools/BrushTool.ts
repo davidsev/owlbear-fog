@@ -99,6 +99,13 @@ export class BrushTool extends BaseTool {
         this.hideCursor();
     }
 
+    // When the button is clicked again, hide the popup (like the built-in actions)
+    public onClick (context: ToolContext, elementId: string): boolean {
+        // This fires before onActivate, so there's no need to check if we're activating or already activated as the popup won't have been shown yet so the hide is a NOP.
+        this.hideSettingsPopup();
+        return true;
+    }
+
     public onToolMove (context: ToolContext, event: ToolEvent): void {
         this.updateCursor(event.pointerPosition);
     }

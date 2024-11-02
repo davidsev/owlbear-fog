@@ -18,7 +18,6 @@ export class RevealToken implements ContextMenuItem {
             some: [
                 { key: ['metadata', getId('revealToken'), 'revealed'], operator: '!=', value: true },
             ],
-
         },
     }];
 
