@@ -12,14 +12,14 @@ learn-more: https://github.com/davidsev/owlbear-fog
 
 # Fog Painter
 
-This extension adds four new tools for drawing fog:
+This extension adds four new tools for cutting or drawing fog:
 
-- A "paint brush" tool that reveals fog as you draw
-- A "select cells" tool that reveals the squares / hexes you select
-- A "lasso" tool that draws around a bunch of squares / hexes to reveal them all
+- A "paint brush" tool that lets you paint fog shapes
+- A "select cells" tool that reveals or fogs the squares / hexes you select
+- A "lasso" tool that draws around a bunch of squares / hexes to reveal or fog them all
 - A "reveal through fog" option that makes a token always visible, even if it's in the fog
 
-The first three tools are in the main Fog toolbar, and the fouth is in the token context menu.
+The first three tools are in the main Fog toolbar, and the fourth is in the token context menu.
 
 ### Other
 
